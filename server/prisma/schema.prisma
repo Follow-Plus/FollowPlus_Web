@@ -1,0 +1,70 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// NOTE: SQLite in Prisma does not support native database enum types.
+// Enums are enforced via application-level TypeScript enums & Zod validation schemas
+// while stored as String columns in SQLite for zero-config evaluation.
+
+model Patient {
+  id                  String          @id @default(uuid())
+  mrn                 String          @unique // Medical Record Number
+  fullName            String
+  primaryPhone        String
+  isSharedPhone       Boolean         @default(false)
+  hasSensitiveConsent Boolean         @default(false)
+  languagePref        String          @default("en")
+  tasks               FollowUpTask[]
+  createdAt           DateTime        @default(now())
+}
+
+model FollowUpTask {
+  id                    String            @id @default(uuid())
+  patientId             String
+  patient               Patient           @relation(fields: [patientId], references: [id])
+  sourceInstructionText String            // Original clinical note
+  extractedSpanJson     String?           // JSON: { action: {text, start, end}, window: {text, start, end} }
+  followUpAction        String
+  windowStartDate       DateTime?
+  windowEndDate         DateTime?
+  urgencyLevel          String            @default("STANDARD") // UrgencyLevel: STANDARD | CLINICIAN_URGENT
+  currentState          String            @default("PROPOSED_DRAFT") // TaskState: PROPOSED_DRAFT | VERIFIED_PENDING_ACTION | etc.
+  assignedStaffId       String?
+  scheduledDate         DateTime?
+  resolutionReason      String?
+  
+  auditLogs             AuditLog[]
+  contactAttempts       ContactAttempt[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model ContactAttempt {
+  id              String         @id @default(uuid())
+  taskId          String
+  task            FollowUpTask   @relation(fields: [taskId], references: [id])
+  channel         String         // ContactChannel: SMS | WHATSAPP | VOICE_CALL | IN_PERSON
+  targetAddress   String         // Phone or email
+  messagePayload  String         // Redacted if shared phone without consent
+  deliveryStatus  String         // DELIVERED, FAILED, NO_ANSWER, PENDING
+  patientResponse String?
+  attemptedAt     DateTime       @default(now())
+}
+
+model AuditLog {
+  id           String       @id @default(uuid())
+  taskId       String
+  task         FollowUpTask @relation(fields: [taskId], references: [id])
+  actorRole    String       // Role: PATIENT | RECORDS_STAFF | CLINICIAN | ADMIN
+  actorId      String
+  actionTaken  String
+  fromState    String?
+  toState      String?
+  metadataJson String?
+  timestamp    DateTime     @default(now())
+}
