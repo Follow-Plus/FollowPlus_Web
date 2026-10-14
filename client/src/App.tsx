@@ -13,9 +13,11 @@ import { ClinicianEditor } from './components/ClinicianEditor';
 import { StaffDashboard } from './components/StaffDashboard';
 import { AuditLogViewer } from './components/AuditLogViewer';
 import { PatientPortal } from './components/PatientPortal';
+import { DemoSwitcher, DemoScenario } from './components/DemoSwitcher';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'clinician' | 'staff' | 'patient' | 'audit'>('clinician');
+  const [activeScenario, setActiveScenario] = useState<DemoScenario | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [urgentCount, setUrgentCount] = useState<number>(0);
   const [outstandingCount, setOutstandingCount] = useState<number>(0);
@@ -200,6 +202,7 @@ export default function App() {
         {/* View Switcher */}
         {currentView === 'clinician' && (
           <ClinicianEditor
+            initialText={activeScenario?.presetText}
             onTaskCreated={() => {
               fetchCounts();
               setCurrentView('staff');
@@ -213,6 +216,15 @@ export default function App() {
 
         {currentView === 'audit' && <AuditLogViewer />}
       </main>
+
+      {/* Interactive Hackathon Demo Controls Toolbar */}
+      <DemoSwitcher
+        activeView={currentView}
+        onSelectScenario={(sc) => {
+          setActiveScenario(sc);
+          setCurrentView(sc.targetView);
+        }}
+      />
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-500 mt-auto">

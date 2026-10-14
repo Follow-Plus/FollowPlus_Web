@@ -48,10 +48,16 @@ function formatDateForInput(isoString?: string | null): string {
   return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
 }
 
-export function ClinicianEditor({ onTaskCreated }: { onTaskCreated?: () => void }) {
+export function ClinicianEditor({
+  onTaskCreated,
+  initialText,
+}: {
+  onTaskCreated?: () => void;
+  initialText?: string;
+}) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
-  const [sourceText, setSourceText] = useState<string>(PRESET_SCENARIOS[0].text);
+  const [sourceText, setSourceText] = useState<string>(initialText || PRESET_SCENARIOS[0].text);
   const [extracting, setExtracting] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null);
@@ -77,6 +83,13 @@ export function ClinicianEditor({ onTaskCreated }: { onTaskCreated?: () => void 
       })
       .catch((err) => console.error('Failed to load patients', err));
   }, []);
+
+  useEffect(() => {
+    if (initialText) {
+      setSourceText(initialText);
+      setExtractionResult(null);
+    }
+  }, [initialText]);
 
   // Run extraction on load or trigger
   const handleExtract = async () => {
