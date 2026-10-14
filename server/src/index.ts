@@ -3,6 +3,8 @@ import cors from '@fastify/cors';
 import { prisma } from './db.js';
 import { taskRoutes } from './routes/tasks.js';
 import { aiRoutes } from './routes/ai.js';
+import { patientRoutes } from './routes/patient.js';
+import { notificationRoutes } from './routes/notifications.js';
 
 export async function buildApp(options: { logger?: boolean } = {}) {
   const isTest = process.env.NODE_ENV === 'test';
@@ -37,6 +39,9 @@ export async function buildApp(options: { logger?: boolean } = {}) {
 
   await app.register(taskRoutes, { prefix: '/api/tasks' });
   await app.register(aiRoutes, { prefix: '/api/ai' });
+  await app.register(patientRoutes, { prefix: '/api/patient' });
+  await app.register(patientRoutes, { prefix: '/api/patients' });
+  await app.register(notificationRoutes, { prefix: '/api/notifications' });
 
   return app;
 }

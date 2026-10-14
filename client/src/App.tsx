@@ -6,14 +6,16 @@ import {
   Clock,
   Stethoscope,
   ClipboardList,
+  UserCheck,
 } from 'lucide-react';
 import { api } from './services/api';
 import { ClinicianEditor } from './components/ClinicianEditor';
 import { StaffDashboard } from './components/StaffDashboard';
 import { AuditLogViewer } from './components/AuditLogViewer';
+import { PatientPortal } from './components/PatientPortal';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'clinician' | 'staff' | 'audit'>('clinician');
+  const [currentView, setCurrentView] = useState<'clinician' | 'staff' | 'patient' | 'audit'>('clinician');
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [urgentCount, setUrgentCount] = useState<number>(0);
   const [outstandingCount, setOutstandingCount] = useState<number>(0);
@@ -95,6 +97,19 @@ export default function App() {
                   {urgentCount + outstandingCount}
                 </span>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCurrentView('patient')}
+              className={`px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                currentView === 'patient'
+                  ? 'bg-white text-sky-800 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Patient Portal</span>
             </button>
 
             <button
@@ -193,6 +208,8 @@ export default function App() {
         )}
 
         {currentView === 'staff' && <StaffDashboard />}
+
+        {currentView === 'patient' && <PatientPortal />}
 
         {currentView === 'audit' && <AuditLogViewer />}
       </main>

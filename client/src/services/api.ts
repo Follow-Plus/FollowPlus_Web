@@ -186,4 +186,77 @@ export const api = {
     });
     return handleResponse<ExtractionResult>(res);
   },
+
+  /**
+   * Get patient record with associated tasks
+   */
+  async getPatientTasks(identifier: string): Promise<Patient> {
+    const res = await fetch(`${API_BASE}/patient/${encodeURIComponent(identifier)}/tasks`);
+    return handleResponse<Patient>(res);
+  },
+
+  /**
+   * Constraint-Aware Rescheduling (Patient Portal)
+   */
+  async reschedulePatientSlot(
+    identifier: string,
+    data: { requestedDate: string; barrierReason?: string; taskId?: string }
+  ): Promise<{
+    confirmed: boolean;
+    requiresStaffReview: boolean;
+    outOfWindow: boolean;
+    task: FollowUpTask;
+    message: string;
+  }> {
+    const res = await fetch(`${API_BASE}/patient/${encodeURIComponent(identifier)}/reschedule`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  /**
+   * Report Attendance Barrier (Patient Portal)
+   */
+  async reportPatientBarrier(
+    identifier: string,
+    data: { barrierReason: string; barrierCategory?: string; notes?: string; taskId?: string }
+  ): Promise<{
+    success: boolean;
+    task: FollowUpTask;
+    message: string;
+  }> {
+    const res = await fetch(`${API_BASE}/patient/${encodeURIComponent(identifier)}/report-barrier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  /**
+   * Trigger simulated consent-aware notification dispatch
+   */
+  async simulateNotification(data: {
+    taskId: string;
+    channel?: string;
+    simulateFailure?: boolean;
+  }): Promise<{
+    success: boolean;
+    attemptId: string;
+    channel: string;
+    targetAddress: string;
+    messagePayload: string;
+    deliveryStatus: string;
+    isRedacted: boolean;
+    taskState: string;
+  }> {
+    const res = await fetch(`${API_BASE}/notifications/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
 };
